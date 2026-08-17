@@ -1,0 +1,71 @@
+# مخطّط النشر على Render — يُنشئ الخادم الخلفي والواجهة معاً.
+# القيم الحسّاسة ليست هنا: كل مفتاح عليه "sync: false" تُدخله يدوياً في لوحة Render.
+
+services:
+  # ---------- الخادم الخلفي (Express + MongoDB) ----------
+  - type: web
+    name: oxygen-boost-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      - key: NODE_ENV
+        value: production
+      # Render يضع الخادم خلف وسيط واحد — لازم لضبط تحديد المعدّل بشكل صحيح
+      - key: TRUST_PROXY
+        value: 1
+      - key: TOKEN_TTL
+        value: 2h
+      - key: DELIVERY_FEE
+        value: 10
+      - key: FREE_DELIVERY_OVER
+        value: 250
+      - key: CURRENCY
+        value: LYD
+      - key: ORDER_RATE_LIMIT
+        value: 20
+      - key: MAX_QTY
+        value: 10
+      # Render يولّد سرّاً عشوائياً قوياً تلقائياً — لا تكتبه بنفسك
+      - key: JWT_SECRET
+        generateValue: true
+      # ↓↓↓ أدخل هذه يدوياً في لوحة Render (Environment) ↓↓↓
+      - key: MONGODB_URI
+        sync: false
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: ORDER_EMAIL_TO
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # عنوان الواجهة — املأه بعد أول نشر برابط الموقع الثابت
+      - key: CORS_ORIGIN
+        sync: false
+
+  # ---------- الواجهة (React + Vite) ----------
+  - type: web
+    name: oxygen-boost-site
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      # عنوان الخادم — املأه بعد أول نشر برابط oxygen-boost-api
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      # React Router — أعد توجيه كل المسارات إلى index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
