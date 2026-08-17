@@ -1,0 +1,25 @@
+{
+  "name": "oxygen-boost",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Oxygen Boost — متجر موسّع الأنف المغناطيسي واللصقات البديلة في ليبيا",
+  "scripts": {
+    "start": "concurrently -n frontend,backend -c blue,green \"npm:frontend\" \"npm:backend\"",
+    "frontend": "vite --open",
+    "backend": "npm run start --prefix server",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.0",
+    "concurrently": "^10.0.5",
+    "vite": "^7.1.12"
+  }
+}

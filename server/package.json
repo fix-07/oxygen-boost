@@ -1,0 +1,24 @@
+{
+  "name": "oxygen-boost-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "واجهة برمجية آمنة لمتجر Oxygen Boost — الأسعار من قاعدة البيانات فقط",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env index.js",
+    "dev": "node --watch --env-file-if-exists=.env index.js",
+    "seed:admin": "node --env-file-if-exists=.env seed-admin.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.9.2",
+    "nodemailer": "^9.0.5"
+  }
+}

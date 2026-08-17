@@ -1,0 +1,499 @@
+/* ==========================================================================
+   Oxygen Boost — نظام التصميم (الهوية: أسود فاخر + أزرق ملكي/سماوي)
+   ========================================================================== */
+
+:root {
+  /* الخلفيات */
+  --bg: #04070f;
+  --bg-2: #070b16;
+  --surface: rgba(255, 255, 255, 0.032);
+  --surface-2: rgba(255, 255, 255, 0.055);
+  --line: rgba(125, 180, 255, 0.13);
+  --line-strong: rgba(125, 180, 255, 0.28);
+
+  /* الأزرق */
+  --blue-900: #0a2a6b;
+  --blue-700: #0e4fd0;
+  --blue-500: #1e8bf5;
+  --cyan-400: #22e6ff;
+  --cyan-200: #8ff2ff;
+
+  --grad: linear-gradient(135deg, #0e63e6 0%, #1e8bf5 45%, #22e6ff 100%);
+  --grad-soft: linear-gradient(135deg, rgba(14, 99, 230, 0.18), rgba(34, 230, 255, 0.1));
+
+  /* النص */
+  --text: #ffffff;
+  --muted: #94a5bd;
+  --muted-2: #6c7d95;
+
+  /* التوهج */
+  --glow: 0 0 0 1px rgba(34, 158, 255, 0.18), 0 18px 45px -18px rgba(20, 120, 255, 0.55);
+  --glow-strong: 0 0 0 1px rgba(34, 190, 255, 0.35), 0 22px 60px -18px rgba(30, 150, 255, 0.75);
+
+  /* أخرى */
+  --radius: 20px;
+  --radius-sm: 13px;
+  --radius-lg: 28px;
+  --container: 1220px;
+  --nav-h: 72px;
+  --ok: #2fd39a;
+  --warn: #ffc44d;
+  --danger: #ff6b6b;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Tajawal', 'Cairo', 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* توهجات خلفية ثابتة تعطي عمقاً للأسود */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(70rem 45rem at 85% -10%, rgba(16, 88, 214, 0.22), transparent 60%),
+    radial-gradient(50rem 40rem at 5% 15%, rgba(20, 200, 255, 0.09), transparent 60%),
+    radial-gradient(60rem 50rem at 50% 110%, rgba(14, 79, 208, 0.14), transparent 65%);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0 0 0.6em;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: clamp(1.9rem, 5.2vw, 3.3rem);
+  line-height: 1.25;
+}
+h2 {
+  font-size: clamp(1.5rem, 3.6vw, 2.35rem);
+}
+h3 {
+  font-size: clamp(1.12rem, 2.2vw, 1.4rem);
+}
+
+p {
+  margin: 0 0 1em;
+  color: var(--muted);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+ul {
+  padding-inline-start: 1.2em;
+  margin: 0 0 1em;
+  color: var(--muted);
+}
+li {
+  margin-bottom: 0.4em;
+}
+
+::selection {
+  background: rgba(34, 190, 255, 0.3);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan-400);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ============================ التخطيط ============================ */
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+.section {
+  padding-block: clamp(56px, 8vw, 104px);
+  position: relative;
+}
+
+.section--tight {
+  padding-block: clamp(40px, 5vw, 64px);
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+/* الحد الأدنى التلقائي لعناصر الشبكة هو min-content، وهذا يجعل أي عنصر
+   قابل للتمرير أفقياً (تبويبات، جداول) يوسّع الصفحة كلها على الجوال.
+   تصفيره يبقي التمرير داخل العنصر نفسه. */
+.grid > *,
+.pdp > *,
+.hero__grid > *,
+.order-wrap > *,
+.cart-row > * {
+  min-width: 0;
+}
+
+.page-head {
+  padding-block: clamp(38px, 6vw, 66px) clamp(12px, 2vw, 20px);
+  text-align: center;
+}
+.page-head p {
+  max-width: 62ch;
+  margin-inline: auto;
+}
+
+/* ============================ العناصر ============================ */
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--cyan-200);
+  background: rgba(34, 190, 255, 0.08);
+  border: 1px solid rgba(34, 190, 255, 0.22);
+  padding: 7px 15px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+.eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan-400);
+  box-shadow: 0 0 10px var(--cyan-400);
+}
+
+.section-head {
+  text-align: center;
+  max-width: 66ch;
+  margin: 0 auto clamp(32px, 4vw, 52px);
+}
+.section-head p {
+  font-size: 1.03rem;
+}
+
+.gradient-text {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 26px;
+  backdrop-filter: blur(6px);
+  transition: transform 0.45s var(--ease), border-color 0.35s, box-shadow 0.45s;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--line-strong);
+  box-shadow: var(--glow);
+}
+
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 0.86rem;
+}
+
+/* ============================ الأزرار ============================ */
+
+.btn {
+  --btn-bg: var(--grad);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1;
+  padding: 15px 28px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  background: var(--btn-bg);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 12px 34px -14px rgba(30, 139, 245, 0.9);
+  transition: transform 0.28s var(--ease), box-shadow 0.28s, filter 0.28s;
+  white-space: nowrap;
+}
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px -14px rgba(34, 190, 255, 0.95);
+  filter: brightness(1.06);
+}
+.btn:active {
+  transform: translateY(0);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  filter: grayscale(0.4);
+}
+
+.btn--ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-strong);
+  box-shadow: none;
+  color: #fff;
+}
+.btn--ghost:hover {
+  background: rgba(34, 190, 255, 0.1);
+  box-shadow: 0 12px 34px -18px rgba(34, 190, 255, 0.8);
+}
+
+.btn--wa {
+  background: linear-gradient(135deg, #1faa54, #25d366);
+  box-shadow: 0 12px 34px -14px rgba(37, 211, 102, 0.8);
+}
+
+.btn--lg {
+  padding: 18px 34px;
+  font-size: 1.06rem;
+}
+.btn--sm {
+  padding: 11px 18px;
+  font-size: 0.86rem;
+}
+.btn--block {
+  width: 100%;
+}
+
+/* ============================ الشارات ============================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 0.73rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--grad);
+  color: #fff;
+  white-space: nowrap;
+}
+.badge--soft {
+  background: rgba(34, 190, 255, 0.12);
+  border: 1px solid rgba(34, 190, 255, 0.3);
+  color: var(--cyan-200);
+}
+.badge--gold {
+  background: linear-gradient(135deg, #b8860b, #ffd166);
+  color: #1a1200;
+}
+.badge--ok {
+  background: rgba(47, 211, 154, 0.14);
+  border: 1px solid rgba(47, 211, 154, 0.35);
+  color: var(--ok);
+}
+.badge--out {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  color: var(--danger);
+}
+
+/* ============================ النماذج ============================ */
+
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+.field > span {
+  display: block;
+  font-family: 'Cairo', sans-serif;
+  font-size: 0.87rem;
+  font-weight: 600;
+  margin-bottom: 7px;
+  color: #dbe6f5;
+}
+.field .req {
+  color: var(--cyan-400);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+  color: #fff;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--muted-2);
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: rgba(34, 190, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 4px rgba(34, 190, 255, 0.12);
+}
+.textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+.select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: left 18px top 50%, left 13px top 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-inline-start: 38px;
+}
+.select option {
+  background: #0a1020;
+  color: #fff;
+}
+.field-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-top: 6px;
+  display: block;
+}
+.input--err,
+.select--err {
+  border-color: rgba(255, 107, 107, 0.65);
+}
+
+/* ============================ حركات الظهور ============================ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.85s var(--ease), transform 0.85s var(--ease);
+  will-change: opacity, transform;
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================ أدوات ============================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+  border: 0;
+  margin: 0;
+}
+
+.stack-sm > * + * {
+  margin-top: 8px;
+}
+
+.price {
+  font-family: 'Cairo', sans-serif;
+  font-weight: 800;
+  color: #fff;
+}
+.price small {
+  font-size: 0.62em;
+  font-weight: 600;
+  color: var(--muted);
+  margin-inline-start: 4px;
+}
+.price-old {
+  color: var(--muted-2);
+  text-decoration: line-through;
+  font-weight: 600;
+  font-size: 0.85em;
+  margin-inline-start: 8px;
+}

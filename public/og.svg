@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glow" cx=".7" cy=".3" r=".8">
+      <stop offset="0" stop-color="#1560d8" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#04070f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ogring" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#1152d6"/><stop offset="1" stop-color="#22e6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#04070f"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <circle cx="930" cy="300" r="120" fill="none" stroke="url(#ogring)" stroke-width="40"/>
+  <path d="M780 366c70 21 126 6 178-25 44-26 78-44 117-44-37 33-67 57-113 80-56 28-119 29-182-11z" fill="url(#ogring)"/>
+  <text x="110" y="290" fill="#ffffff" font-family="Cairo, sans-serif" font-size="86" font-weight="800">Oxygen Boost</text>
+  <text x="110" y="380" fill="#8fd4ff" font-family="Cairo, sans-serif" font-size="44" font-weight="600" direction="rtl">تنفّس بسهولة أكبر</text>
+  <text x="110" y="452" fill="#7f8ea6" font-family="Cairo, sans-serif" font-size="32" direction="rtl">توصيل داخل ليبيا · الدفع عند الاستلام</text>
+</svg>
