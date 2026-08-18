@@ -4,6 +4,7 @@ import { config } from '../config.js'
 import { User } from '../models/User.js'
 import { DUMMY_HASH, hashPassword, requireAdmin, signToken, verifyPassword } from '../auth.js'
 import { bad, email as validateEmail, int, str, strictObject } from '../validate.js'
+import { sendPasswordChangedEmail } from '../mailer.js'
 import { listAdminProducts, updateProduct } from '../services/productService.js'
 import { listOrdersAdmin, updateOrderAdmin } from '../services/orderService.js'
 import { listCoupons, upsertCoupon, deleteCoupon } from '../services/couponService.js'
@@ -61,6 +62,7 @@ adminRouter.patch('/admin/password', requireAdmin, passwordChangeLimiter, async 
     user.passwordHash = hashPassword(newPassword)
     await user.save()
 
+    sendPasswordChangedEmail(user.email).catch((err) => console.error('[mail]', err.message))
     res.json({ ok: true })
   } catch (err) {
     next(err)

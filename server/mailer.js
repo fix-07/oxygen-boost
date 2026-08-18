@@ -85,3 +85,25 @@ export async function sendOrderEmail(order) {
     console.error(`[mail] تعذّر إرسال بريد الطلب ${order.number}:`, err.message)
   }
 }
+
+/** إشعار أمني — يُرسَل لصاحب الحساب نفسه بعد كل تغيير لكلمة مروره */
+export async function sendPasswordChangedEmail(toEmail) {
+  if (!transporter) return
+
+  const when = new Date().toLocaleString('ar-LY', { dateStyle: 'medium', timeStyle: 'short' })
+  try {
+    await transporter.sendMail({
+      from: `"Oxygen Boost" <${config.mail.from}>`,
+      to: toEmail,
+      subject: 'تم تغيير كلمة مرور حساب المشرف',
+      text: `تم تغيير كلمة مرور حساب المشرف (${toEmail}) بتاريخ ${when}.\n\nإن لم تكن أنت من قام بهذا التغيير، تواصل فوراً مع مسؤول النظام.`,
+      html: `<div dir="rtl" style="font-family:system-ui,Segoe UI,Arial,sans-serif">
+  <h2 style="margin:0 0 12px">تم تغيير كلمة المرور</h2>
+  <p>تم تغيير كلمة مرور حساب المشرف <b>${esc(toEmail)}</b> بتاريخ ${esc(when)}.</p>
+  <p style="color:#888">إن لم تكن أنت من قام بهذا التغيير، غيّر كلمة المرور فوراً وتحقّق من أمان حسابك.</p>
+</div>`,
+    })
+  } catch (err) {
+    console.error('[mail] تعذّر إرسال إشعار تغيير كلمة المرور:', err.message)
+  }
+}

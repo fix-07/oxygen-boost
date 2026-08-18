@@ -1253,6 +1253,46 @@ tbody tr:hover td {
   border-color: rgba(255, 107, 107, 0.4);
   background: rgba(255, 107, 107, 0.1);
 }
+.btn--danger {
+  background: var(--danger);
+  color: #fff;
+}
+.btn--danger:hover {
+  filter: brightness(1.08);
+}
+
+/* ---------------------------- نافذة منبثقة ---------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 16, 0.65);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+.modal-box {
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.pw-strength {
+  display: flex;
+  gap: 5px;
+  margin: 8px 0 4px;
+}
+.pw-strength span {
+  height: 4px;
+  flex: 1;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background 0.2s;
+}
+.pw-strength span.is-filled {
+  background: var(--bar-color, var(--cyan-400));
+}
 
 /* ---------------------------- الصفحات النصية ---------------------------- */
 .prose {

@@ -100,3 +100,46 @@ export function EmptyState({ icon = 'cart', title, text, children }) {
     </div>
   )
 }
+
+/** نافذة منبثقة عامة — أساس مشترك لأي حوار (تأكيد، نموذج...) */
+export function Modal({ open, onClose, title, maxWidth = 420, children }) {
+  if (!open) return null
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="panel panel--glow modal-box" style={{ maxWidth }} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <h3 style={{ margin: 0 }}>{title}</h3>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="إغلاق">
+            <Icon name="x" size={17} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** حوار تأكيد — لأي عملية لها تبعات (تسجيل الخروج، الحذف...) */
+export function ConfirmDialog({ open, title, text, confirmLabel = 'تأكيد', danger = false, busy = false, onConfirm, onCancel }) {
+  return (
+    <Modal open={open} onClose={onCancel} title={title} maxWidth={380}>
+      <p className="small muted" style={{ marginBottom: 20 }}>
+        {text}
+      </p>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button type="button" className="btn btn--ghost btn--sm" style={{ flex: 1 }} onClick={onCancel}>
+          إلغاء
+        </button>
+        <button
+          type="button"
+          className={`btn btn--sm ${danger ? 'btn--danger' : ''}`}
+          style={{ flex: 1 }}
+          onClick={onConfirm}
+          disabled={busy}
+        >
+          {busy ? '...جارٍ' : confirmLabel}
+        </button>
+      </div>
+    </Modal>
+  )
+}

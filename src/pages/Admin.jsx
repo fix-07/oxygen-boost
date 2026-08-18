@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
-import { Reveal } from '../components/ui'
+import { ConfirmDialog, Modal, Reveal } from '../components/ui'
 import { buildWhatsAppMessage } from '../components/OrderForm'
 import { useStore } from '../store/StoreContext'
 import { useAdminAuth } from '../hooks/useAdminAuth'
@@ -82,6 +82,125 @@ function Gate({ login }) {
         </p>
       </Reveal>
     </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  تغيير كلمة المرور                                                          */
+/* -------------------------------------------------------------------------- */
+
+/** تقدير بسيط لقوة كلمة المرور — طول + تنوّع الأحرف، بلا اعتماديات خارجية */
+function passwordStrength(pw) {
+  if (!pw) return 0
+  let score = 0
+  if (pw.length >= 8) score++
+  if (pw.length >= 12) score++
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++
+  if (/\d/.test(pw) && /[^\w]/.test(pw)) score++
+  return score
+}
+
+const STRENGTH_LABEL = ['ضعيفة جداً', 'ضعيفة', 'مقبولة', 'جيدة', 'قوية']
+const STRENGTH_COLOR = ['var(--danger)', 'var(--danger)', 'var(--warn)', 'var(--ok)', 'var(--ok)']
+
+function ChangePasswordModal({ open, onClose, auth }) {
+  const empty = { currentPassword: '', newPassword: '', confirmPassword: '' }
+  const [values, setValues] = useState(empty)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  const set = (field) => (e) => {
+    setValues((v) => ({ ...v, [field]: e.target.value }))
+    setError('')
+  }
+
+  const close = () => {
+    setValues(empty)
+    setError('')
+    setSuccess(false)
+    onClose()
+  }
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    /* تحقّق فوري في المتصفح — الخادم يتحقّق مرة أخرى بشكل مستقل قبل الحفظ */
+    if (values.newPassword.length < 8) return setError('كلمة المرور الجديدة يجب أن تكون ٨ أحرف على الأقل.')
+    if (values.newPassword !== values.confirmPassword) return setError('كلمة المرور الجديدة وتأكيدها غير متطابقين.')
+    if (values.newPassword === values.currentPassword) return setError('كلمة المرور الجديدة يجب أن تختلف عن الحالية.')
+
+    setBusy(true)
+    try {
+      await auth.patch('/admin/password', {
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      })
+      setSuccess(true)
+      setValues(empty)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'تعذّر تغيير كلمة المرور. حاول مرة أخرى.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const strength = passwordStrength(values.newPassword)
+
+  return (
+    <Modal open={open} onClose={close} title="تغيير كلمة المرور">
+      {success ? (
+        <div style={{ textAlign: 'center', padding: '10px 0' }}>
+          <Icon name="check-circle" size={38} style={{ color: 'var(--ok)', marginBottom: 10 }} />
+          <p>تم تغيير كلمة المرور بنجاح.</p>
+          <button type="button" className="btn btn--sm" style={{ marginTop: 16 }} onClick={close}>
+            إغلاق
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={submit}>
+          <label className="field">
+            <span>كلمة المرور الحالية</span>
+            <input className="input" type="password" value={values.currentPassword} onChange={set('currentPassword')} required />
+          </label>
+          <label className="field">
+            <span>كلمة المرور الجديدة</span>
+            <input className="input" type="password" value={values.newPassword} onChange={set('newPassword')} required />
+            {values.newPassword && (
+              <>
+                <div className="pw-strength">
+                  {[0, 1, 2, 3].map((i) => (
+                    <span
+                      key={i}
+                      className={i < strength ? 'is-filled' : ''}
+                      style={{ '--bar-color': STRENGTH_COLOR[strength] }}
+                    />
+                  ))}
+                </div>
+                <span className="small" style={{ color: STRENGTH_COLOR[strength] }}>
+                  {STRENGTH_LABEL[strength]}
+                </span>
+              </>
+            )}
+          </label>
+          <label className="field">
+            <span>تأكيد كلمة المرور الجديدة</span>
+            <input
+              className={`input ${error ? 'input--err' : ''}`}
+              type="password"
+              value={values.confirmPassword}
+              onChange={set('confirmPassword')}
+              required
+            />
+            {error && <em className="field-error">{error}</em>}
+          </label>
+          <button type="submit" className="btn btn--block" disabled={busy}>
+            {busy ? 'جارٍ الحفظ…' : 'حفظ كلمة المرور الجديدة'}
+          </button>
+        </form>
+      )}
+    </Modal>
   )
 }
 
@@ -521,7 +640,7 @@ function CouponsTab({ coupons, onSave, onDelete }) {
   )
 }
 
-function SettingsTab({ settings, onSaveSettings, onLogout }) {
+function SettingsTab({ settings, onSaveSettings, onOpenChangePassword }) {
   const { toast } = useStore()
   const [draft, setDraft] = useState(settings)
   const [busy, setBusy] = useState(false)
@@ -595,14 +714,10 @@ function SettingsTab({ settings, onSaveSettings, onLogout }) {
 
       <div className="panel">
         <h3 style={{ marginBottom: 16 }}>حساب المشرف</h3>
-        <p className="small">
-          لتغيير كلمة مرور المشرف، حدّث <code style={{ color: 'var(--cyan-200)' }}>ADMIN_PASSWORD</code> في ملف{' '}
-          <code style={{ color: 'var(--cyan-200)' }}>server/.env</code> ثم شغّل{' '}
-          <code style={{ color: 'var(--cyan-200)' }}>npm run seed:admin</code> من الخادم.
-        </p>
-        <hr className="divider" style={{ margin: '20px 0' }} />
-        <button type="button" className="btn btn--ghost btn--sm btn--block" onClick={onLogout}>
-          تسجيل الخروج
+        <p className="small">حدّث كلمة مرور حسابك دورياً للحفاظ على أمان لوحة التحكم.</p>
+        <button type="button" className="btn btn--ghost btn--sm" style={{ marginTop: 10 }} onClick={onOpenChangePassword}>
+          <Icon name="lock" size={15} />
+          تغيير كلمة المرور
         </button>
       </div>
     </div>
@@ -629,6 +744,8 @@ export default function Admin() {
   const [settings, setSettings] = useState(null)
   const [loadState, setLoadState] = useState('idle') // 'idle' | 'loading' | 'ready' | 'error'
   const [loadError, setLoadError] = useState('')
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
 
   useSeo({ title: 'لوحة التحكم', description: 'إدارة المنتجات والطلبات وأكواد الخصم.', path: '/admin' })
 
@@ -754,10 +871,16 @@ export default function Admin() {
             {unread > 0 ? `لديك ${unread} طلب جديد بانتظار المراجعة` : 'كل الطلبات مُراجَعة'}
           </p>
         </div>
-        <Link to="/" className="btn btn--ghost btn--sm">
-          <Icon name="arrow-back" size={16} />
-          العودة للمتجر
-        </Link>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Link to="/" className="btn btn--ghost btn--sm">
+            <Icon name="arrow-back" size={16} />
+            العودة للمتجر
+          </Link>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowLogoutConfirm(true)}>
+            <Icon name="logout" size={16} />
+            تسجيل الخروج
+          </button>
+        </div>
       </div>
 
       <div className="admin-tabs">
@@ -773,7 +896,24 @@ export default function Admin() {
       {tab === 'products' && <ProductsTab products={products} onUpdate={updateProduct} />}
       {tab === 'orders' && <OrdersTab orders={orders} onUpdate={updateOrder} />}
       {tab === 'coupons' && <CouponsTab coupons={coupons} onSave={saveCoupon} onDelete={deleteCoupon} />}
-      {tab === 'settings' && <SettingsTab settings={settings} onSaveSettings={saveSettings} onLogout={auth.logout} />}
+      {tab === 'settings' && (
+        <SettingsTab settings={settings} onSaveSettings={saveSettings} onOpenChangePassword={() => setShowChangePassword(true)} />
+      )}
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        title="تسجيل الخروج"
+        text="هل تريد تسجيل الخروج من لوحة التحكم؟"
+        confirmLabel="تسجيل الخروج"
+        danger
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={() => {
+          setShowLogoutConfirm(false)
+          auth.logout()
+        }}
+      />
+
+      <ChangePasswordModal open={showChangePassword} onClose={() => setShowChangePassword(false)} auth={auth} />
     </div>
   )
 }
