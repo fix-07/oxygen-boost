@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { ConfirmDialog, Modal, Reveal } from '../components/ui'
@@ -197,6 +197,87 @@ function ChangePasswordModal({ open, onClose, auth }) {
           </label>
           <button type="submit" className="btn btn--block" disabled={busy}>
             {busy ? 'جارٍ الحفظ…' : 'حفظ كلمة المرور الجديدة'}
+          </button>
+        </form>
+      )}
+    </Modal>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  تغيير البريد الإلكتروني                                                    */
+/* -------------------------------------------------------------------------- */
+
+function ChangeEmailModal({ open, onClose, auth }) {
+  const empty = { currentPassword: '', newEmail: '' }
+  const [values, setValues] = useState(empty)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  const set = (field) => (e) => {
+    setValues((v) => ({ ...v, [field]: e.target.value }))
+    setError('')
+  }
+
+  const close = () => {
+    setValues(empty)
+    setError('')
+    setSuccess(false)
+    onClose()
+  }
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      /* الاستجابة تحمل رمزاً جديداً — البريد القديم داخل الرمز الحالي أصبح غير صالح للبحث عن المستخدم */
+      const res = await auth.patch('/admin/email', {
+        currentPassword: values.currentPassword,
+        newEmail: values.newEmail.trim().toLowerCase(),
+      })
+      auth.applySession(res)
+      setSuccess(true)
+      setValues(empty)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'تعذّر تغيير البريد الإلكتروني. حاول مرة أخرى.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={close} title="تغيير البريد الإلكتروني">
+      {success ? (
+        <div style={{ textAlign: 'center', padding: '10px 0' }}>
+          <Icon name="check-circle" size={38} style={{ color: 'var(--ok)', marginBottom: 10 }} />
+          <p>تم تغيير البريد الإلكتروني بنجاح.</p>
+          <button type="button" className="btn btn--sm" style={{ marginTop: 16 }} onClick={close}>
+            إغلاق
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={submit}>
+          <label className="field">
+            <span>كلمة المرور الحالية</span>
+            <input className="input" type="password" value={values.currentPassword} onChange={set('currentPassword')} required />
+          </label>
+          <label className="field">
+            <span>البريد الإلكتروني الجديد</span>
+            <input
+              className={`input ${error ? 'input--err' : ''}`}
+              type="email"
+              value={values.newEmail}
+              onChange={set('newEmail')}
+              dir="ltr"
+              style={{ textAlign: 'right' }}
+              required
+            />
+            {error && <em className="field-error">{error}</em>}
+          </label>
+          <button type="submit" className="btn btn--block" disabled={busy}>
+            {busy ? 'جارٍ الحفظ…' : 'حفظ البريد الجديد'}
           </button>
         </form>
       )}
@@ -640,7 +721,7 @@ function CouponsTab({ coupons, onSave, onDelete }) {
   )
 }
 
-function SettingsTab({ settings, onSaveSettings, onOpenChangePassword }) {
+function SettingsTab({ settings, onSaveSettings, onOpenChangePassword, onOpenChangeEmail }) {
   const { toast } = useStore()
   const [draft, setDraft] = useState(settings)
   const [busy, setBusy] = useState(false)
@@ -715,10 +796,16 @@ function SettingsTab({ settings, onSaveSettings, onOpenChangePassword }) {
       <div className="panel">
         <h3 style={{ marginBottom: 16 }}>حساب المشرف</h3>
         <p className="small">حدّث كلمة مرور حسابك دورياً للحفاظ على أمان لوحة التحكم.</p>
-        <button type="button" className="btn btn--ghost btn--sm" style={{ marginTop: 10 }} onClick={onOpenChangePassword}>
-          <Icon name="lock" size={15} />
-          تغيير كلمة المرور
-        </button>
+        <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenChangePassword}>
+            <Icon name="lock" size={15} />
+            تغيير كلمة المرور
+          </button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenChangeEmail}>
+            <Icon name="mail" size={15} />
+            تغيير البريد الإلكتروني
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -746,6 +833,7 @@ export default function Admin() {
   const [loadError, setLoadError] = useState('')
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [showChangePassword, setShowChangePassword] = useState(false)
+  const [showChangeEmail, setShowChangeEmail] = useState(false)
 
   useSeo({ title: 'لوحة التحكم', description: 'إدارة المنتجات والطلبات وأكواد الخصم.', path: '/admin' })
 
@@ -779,9 +867,14 @@ export default function Admin() {
     }
   }, [auth])
 
+  /* لا تُعِد تحميل كل البيانات كلما تجدّد رمز الجلسة (مثلاً بعد تغيير البريد) —
+     فقط عند انتقال فعلي من غير مسجَّل إلى مسجَّل */
+  const loadAllRef = useRef(loadAll)
+  loadAllRef.current = loadAll
+
   useEffect(() => {
-    if (auth.isAuthed) loadAll()
-  }, [auth.isAuthed, loadAll])
+    if (auth.isAuthed) loadAllRef.current()
+  }, [auth.isAuthed])
 
   const updateProduct = useCallback(
     async (id, patch) => {
@@ -897,7 +990,12 @@ export default function Admin() {
       {tab === 'orders' && <OrdersTab orders={orders} onUpdate={updateOrder} />}
       {tab === 'coupons' && <CouponsTab coupons={coupons} onSave={saveCoupon} onDelete={deleteCoupon} />}
       {tab === 'settings' && (
-        <SettingsTab settings={settings} onSaveSettings={saveSettings} onOpenChangePassword={() => setShowChangePassword(true)} />
+        <SettingsTab
+          settings={settings}
+          onSaveSettings={saveSettings}
+          onOpenChangePassword={() => setShowChangePassword(true)}
+          onOpenChangeEmail={() => setShowChangeEmail(true)}
+        />
       )}
 
       <ConfirmDialog
@@ -914,6 +1012,7 @@ export default function Admin() {
       />
 
       <ChangePasswordModal open={showChangePassword} onClose={() => setShowChangePassword(false)} auth={auth} />
+      <ChangeEmailModal open={showChangeEmail} onClose={() => setShowChangeEmail(false)} auth={auth} />
     </div>
   )
 }

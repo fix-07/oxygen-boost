@@ -107,3 +107,37 @@ export async function sendPasswordChangedEmail(toEmail) {
     console.error('[mail] تعذّر إرسال إشعار تغيير كلمة المرور:', err.message)
   }
 }
+
+/** إشعار أمني مزدوج — يُرسَل للبريد القديم (تنبيه) وللبريد الجديد (تأكيد) بعد تغيير بريد الحساب */
+export async function sendEmailChangedNotice(oldEmail, newEmail) {
+  if (!transporter) return
+
+  const when = new Date().toLocaleString('ar-LY', { dateStyle: 'medium', timeStyle: 'short' })
+  try {
+    await Promise.all([
+      transporter.sendMail({
+        from: `"Oxygen Boost" <${config.mail.from}>`,
+        to: oldEmail,
+        subject: 'تم تغيير البريد الإلكتروني لحساب المشرف',
+        text: `تم تغيير بريد حساب المشرف من ${oldEmail} إلى ${newEmail} بتاريخ ${when}.\n\nإن لم تكن أنت من قام بهذا التغيير، تواصل فوراً مع مسؤول النظام.`,
+        html: `<div dir="rtl" style="font-family:system-ui,Segoe UI,Arial,sans-serif">
+  <h2 style="margin:0 0 12px">تم تغيير البريد الإلكتروني</h2>
+  <p>تم تغيير بريد حساب المشرف من <b>${esc(oldEmail)}</b> إلى <b>${esc(newEmail)}</b> بتاريخ ${esc(when)}.</p>
+  <p style="color:#888">إن لم تكن أنت من قام بهذا التغيير، تواصل فوراً مع مسؤول النظام.</p>
+</div>`,
+      }),
+      transporter.sendMail({
+        from: `"Oxygen Boost" <${config.mail.from}>`,
+        to: newEmail,
+        subject: 'تأكيد: هذا بريد حساب المشرف الآن',
+        text: `تم تعيين هذا البريد (${newEmail}) بريداً لتسجيل دخول المشرف بدلاً من ${oldEmail} بتاريخ ${when}.`,
+        html: `<div dir="rtl" style="font-family:system-ui,Segoe UI,Arial,sans-serif">
+  <h2 style="margin:0 0 12px">تأكيد تغيير البريد الإلكتروني</h2>
+  <p>تم تعيين <b>${esc(newEmail)}</b> بريداً لتسجيل دخول حساب المشرف بدلاً من ${esc(oldEmail)} بتاريخ ${esc(when)}.</p>
+</div>`,
+      }),
+    ])
+  } catch (err) {
+    console.error('[mail] تعذّر إرسال إشعار تغيير البريد:', err.message)
+  }
+}

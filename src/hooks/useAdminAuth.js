@@ -29,12 +29,19 @@ const readSession = () => {
 export function useAdminAuth() {
   const [session, setSession] = useState(readSession)
 
-  const login = useCallback(async (email, password) => {
-    const res = await api.post('/admin/login', { email, password })
+  /** يُخزّن جلسة من استجابة تحمل { token, expiresIn, role } — تسجيل الدخول أو أي رمز مُجدَّد بعده */
+  const applySession = useCallback((res) => {
     const next = { token: res.token, role: res.role, expiresAt: Date.now() + parseTtlMs(res.expiresIn) }
     sessionStorage.setItem(KEY, JSON.stringify(next))
     setSession(next)
   }, [])
+
+  const login = useCallback(
+    async (email, password) => {
+      applySession(await api.post('/admin/login', { email, password }))
+    },
+    [applySession]
+  )
 
   const logout = useCallback(() => {
     sessionStorage.removeItem(KEY)
@@ -59,11 +66,12 @@ export function useAdminAuth() {
       isAuthed: Boolean(session),
       login,
       logout,
+      applySession,
       get: (path) => call((token) => api.get(path, { token })),
       post: (path, body) => call((token) => api.post(path, body, { token })),
       patch: (path, body) => call((token) => api.patch(path, body, { token })),
       delete: (path) => call((token) => api.delete(path, { token })),
     }),
-    [session, login, logout, call]
+    [session, login, logout, applySession, call]
   )
 }

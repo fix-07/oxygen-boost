@@ -4,7 +4,7 @@ import { config } from '../config.js'
 import { User } from '../models/User.js'
 import { DUMMY_HASH, hashPassword, requireAdmin, signToken, verifyPassword } from '../auth.js'
 import { bad, email as validateEmail, int, str, strictObject } from '../validate.js'
-import { sendPasswordChangedEmail } from '../mailer.js'
+import { sendPasswordChangedEmail, sendEmailChangedNotice } from '../mailer.js'
 import { listAdminProducts, updateProduct } from '../services/productService.js'
 import { listOrdersAdmin, updateOrderAdmin } from '../services/orderService.js'
 import { listCoupons, upsertCoupon, deleteCoupon } from '../services/couponService.js'
@@ -55,8 +55,10 @@ adminRouter.patch('/admin/password', requireAdmin, passwordChangeLimiter, async 
     const newPassword = str(body.newPassword, { field: 'newPassword', min: 8, max: 200 })
 
     const user = await User.findOne({ email: req.user.email })
+    /* 400 لا 401 — الرمز صالح والمستخدم موثّق فعلاً، فقط أخطأ كلمة المرور الحالية.
+       401 هنا يجعل عميل الواجهة يظنّ الجلسة منتهية ويسجّل خروجاً تلقائياً. */
     if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
-      return res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة.' })
+      bad('كلمة المرور الحالية غير صحيحة.')
     }
 
     user.passwordHash = hashPassword(newPassword)
@@ -64,6 +66,38 @@ adminRouter.patch('/admin/password', requireAdmin, passwordChangeLimiter, async 
 
     sendPasswordChangedEmail(user.email).catch((err) => console.error('[mail]', err.message))
     res.json({ ok: true })
+  } catch (err) {
+    next(err)
+  }
+})
+
+const emailChangeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  skipSuccessfulRequests: true,
+  message: { error: 'محاولات كثيرة. حاول بعد ١٥ دقيقة.' },
+})
+
+/** تغيير بريد المشرف الحالي — يتطلّب كلمة المرور الحالية، ويصدر رمزاً جديداً لأن الرمز القديم يحمل البريد القديم */
+adminRouter.patch('/admin/email', requireAdmin, emailChangeLimiter, async (req, res, next) => {
+  try {
+    const body = strictObject(req.body, ['currentPassword', 'newEmail'])
+    const currentPassword = str(body.currentPassword, { field: 'currentPassword', min: 1, max: 200 })
+    const newEmail = validateEmail(body.newEmail)
+
+    const user = await User.findOne({ email: req.user.email })
+    if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
+      bad('كلمة المرور الحالية غير صحيحة.')
+    }
+    if (newEmail === user.email) bad('البريد الجديد مطابق للبريد الحالي.')
+    if (await User.exists({ email: newEmail })) bad('هذا البريد مستخدم بالفعل.')
+
+    const oldEmail = user.email
+    user.email = newEmail
+    await user.save()
+
+    sendEmailChangedNotice(oldEmail, newEmail).catch((err) => console.error('[mail]', err.message))
+    res.json({ ok: true, token: signToken(user), expiresIn: config.tokenTtl, role: user.role })
   } catch (err) {
     next(err)
   }
