@@ -4,6 +4,8 @@
  * القاعدة الأمنية الأساسية: كل سعر ومبلغ يُقرأ ويُحسب من قاعدة البيانات فقط.
  * نقاط الطلب لا تقبل أي حقل يتعلّق بالمال من العميل — إرسال حقل غير مسموح به يُرفَض بالحالة 400.
  */
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import express from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
@@ -13,6 +15,8 @@ import { config } from './config.js'
 import { publicRouter } from './routes/public.routes.js'
 import { adminRouter } from './routes/admin.routes.js'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
 export const app = express()
 
 app.set('trust proxy', config.trustProxy)
@@ -20,6 +24,11 @@ app.use(helmet())
 app.use(cors({ origin: config.corsOrigins, methods: ['GET', 'POST', 'PATCH', 'DELETE'] }))
 app.use(express.json({ limit: '10kb' }))
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }))
+
+/* أداة تطوير محلية لاختبار تغيير كلمة مرور المشرف — غير متاحة في الإنتاج */
+if (!config.isProd) {
+  app.get('/admin/test', (req, res) => res.sendFile(path.join(__dirname, 'public', 'test-change-password.html')))
+}
 
 app.use(publicRouter)
 app.use(adminRouter)

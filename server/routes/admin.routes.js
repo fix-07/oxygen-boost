@@ -2,7 +2,7 @@ import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
 import { config } from '../config.js'
 import { User } from '../models/User.js'
-import { DUMMY_HASH, requireAdmin, signToken, verifyPassword } from '../auth.js'
+import { DUMMY_HASH, hashPassword, requireAdmin, signToken, verifyPassword } from '../auth.js'
 import { bad, email as validateEmail, int, str, strictObject } from '../validate.js'
 import { listAdminProducts, updateProduct } from '../services/productService.js'
 import { listOrdersAdmin, updateOrderAdmin } from '../services/orderService.js'
@@ -34,6 +34,34 @@ adminRouter.post('/admin/login', loginLimiter, async (req, res, next) => {
     if (user.role !== 'admin') return res.status(403).json({ error: 'صلاحيات غير كافية.' })
 
     res.json({ token: signToken(user), expiresIn: config.tokenTtl, role: user.role })
+  } catch (err) {
+    next(err)
+  }
+})
+
+const passwordChangeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  skipSuccessfulRequests: true,
+  message: { error: 'محاولات كثيرة. حاول بعد ١٥ دقيقة.' },
+})
+
+/** تغيير كلمة مرور المشرف الحالي — يتطلّب كلمة المرور الحالية */
+adminRouter.patch('/admin/password', requireAdmin, passwordChangeLimiter, async (req, res, next) => {
+  try {
+    const body = strictObject(req.body, ['currentPassword', 'newPassword'])
+    const currentPassword = str(body.currentPassword, { field: 'currentPassword', min: 1, max: 200 })
+    const newPassword = str(body.newPassword, { field: 'newPassword', min: 8, max: 200 })
+
+    const user = await User.findOne({ email: req.user.email })
+    if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
+      return res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة.' })
+    }
+
+    user.passwordHash = hashPassword(newPassword)
+    await user.save()
+
+    res.json({ ok: true })
   } catch (err) {
     next(err)
   }
