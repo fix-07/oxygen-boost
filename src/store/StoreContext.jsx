@@ -212,23 +212,8 @@ export function StoreProvider({ children }) {
     settings,
     toast,
     toasts,
-  }
-
-  if (status !== 'ready') {
-    return (
-      <div className="container section" style={{ textAlign: 'center', minHeight: '70vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        {status === 'loading' ? (
-          <p className="muted">جارٍ تحميل المتجر…</p>
-        ) : (
-          <EmptyState icon="alert" title="تعذّر الاتصال بالخادم" text="تحقّق من اتصالك بالإنترنت ثم أعد المحاولة.">
-            <button type="button" className="btn" onClick={load}>
-              <Icon name="refresh" size={16} />
-              إعادة المحاولة
-            </button>
-          </EmptyState>
-        )}
-      </div>
-    )
+    status,
+    reload: load,
   }
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
@@ -238,4 +223,27 @@ export const useStore = () => {
   const ctx = useContext(StoreContext)
   if (!ctx) throw new Error('useStore يجب أن يُستخدم داخل StoreProvider')
   return ctx
+}
+
+/** يحجب المحتوى فقط للصفحات التي تحتاج فعلاً بيانات حيّة من الخادم (المتجر، السلة...).
+    الصفحات الثابتة (الأسئلة الشائعة، من نحن...) لا تُغلَّف بهذا، فتظهر حتى لو تعطّل الخادم. */
+export function StoreGate({ children }) {
+  const { status, reload } = useStore()
+
+  if (status === 'ready') return children
+
+  return (
+    <div className="container section" style={{ textAlign: 'center', minHeight: '70vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      {status === 'loading' ? (
+        <p className="muted">جارٍ تحميل المتجر…</p>
+      ) : (
+        <EmptyState icon="alert" title="تعذّر الاتصال بالخادم" text="تحقّق من اتصالك بالإنترنت ثم أعد المحاولة.">
+          <button type="button" className="btn" onClick={reload}>
+            <Icon name="refresh" size={16} />
+            إعادة المحاولة
+          </button>
+        </EmptyState>
+      )}
+    </div>
+  )
 }

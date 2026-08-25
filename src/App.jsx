@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import { trackPageView } from './analytics'
+import { StoreGate } from './store/StoreContext'
 
 /* الصفحات الثانوية تُحمّل عند الحاجة فقط — يبقى الدخول الأول سريعاً */
 const Shop = lazy(() => import('./pages/Shop'))
@@ -40,16 +41,51 @@ export default function App() {
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="shop" element={<Shop />} />
-            <Route path="product/:slug" element={<Product />} />
+            <Route
+              index
+              element={
+                <StoreGate>
+                  <Home />
+                </StoreGate>
+              }
+            />
+            <Route
+              path="shop"
+              element={
+                <StoreGate>
+                  <Shop />
+                </StoreGate>
+              }
+            />
+            <Route
+              path="product/:slug"
+              element={
+                <StoreGate>
+                  <Product />
+                </StoreGate>
+              }
+            />
             <Route path="how-to-use" element={<HowToUse />} />
             <Route path="about" element={<About />} />
             <Route path="faq" element={<Faq />} />
             <Route path="contact" element={<Contact />} />
             <Route path="track" element={<Track />} />
-            <Route path="cart" element={<Cart />} />
-            <Route path="checkout" element={<Checkout />} />
+            <Route
+              path="cart"
+              element={
+                <StoreGate>
+                  <Cart />
+                </StoreGate>
+              }
+            />
+            <Route
+              path="checkout"
+              element={
+                <StoreGate>
+                  <Checkout />
+                </StoreGate>
+              }
+            />
             <Route path="order/:number" element={<OrderSuccess />} />
             <Route path="shipping" element={<Policy kind="shipping" />} />
             <Route path="returns" element={<Policy kind="returns" />} />
