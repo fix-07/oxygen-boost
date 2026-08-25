@@ -28,7 +28,7 @@ export const SITE = {
   },
 
   // رابط فيديو الشرح (YouTube embed أو ملف mp4). اتركه فارغاً لعرض صورة الغلاف.
-  howToVideo: '',
+  howToVideo: 'https://www.youtube.com/embed/JPXmeApUoW4',
 }
 
 export const WHATSAPP_DEFAULT_MSG = 'السلام عليكم، أريد الاستفسار عن منتجات Oxygen Boost.'
