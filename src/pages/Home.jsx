@@ -7,7 +7,6 @@ import { Reveal, SectionHead, Stars } from '../components/ui'
 import {
   AudienceSection,
   BeforeAfter,
-  FaqSection,
   HowToVideo,
   ReviewsSection,
   StepsSection,
@@ -266,18 +265,6 @@ export default function Home() {
       <section className="section" id="reviews">
         <div className="container">
           <ReviewsSection />
-        </div>
-      </section>
-
-      {/* الأسئلة الشائعة */}
-      <section className="section" id="faq">
-        <div className="container">
-          <SectionHead
-            eyebrow="الأسئلة الشائعة"
-            title="كل ما تحتاج معرفته قبل الطلب"
-            text="لم تجد سؤالك؟ راسلنا على واتساب وسنجيبك مباشرة."
-          />
-          <FaqSection limit={6} />
         </div>
       </section>
 
