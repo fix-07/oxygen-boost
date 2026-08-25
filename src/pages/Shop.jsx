@@ -72,7 +72,7 @@ export default function Shop() {
             </p>
             <button type="button" className="btn" onClick={() => addToCart('bundle-60', 1, { open: true })}>
               <Icon name="cart" size={18} />
-              أضف الباقة الأكثر طلباً — {money(205)}
+              أضف الباقة الأكثر طلباً — {money(89)}
             </button>
           </Reveal>
         </div>
