@@ -68,15 +68,26 @@ export function StoreProvider({ children }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [status, setStatus] = useState('loading') // 'loading' | 'ready' | 'error'
 
+  // الخادم المجاني (Render) قد "ينام" بعد فترة خمول ويحتاج نحو ٢٠-٣٠ ثانية للاستيقاظ،
+  // فيفشل أول طلب بخطأ مؤقت. نعيد المحاولة بدل إظهار خطأ فوري لا داعي له.
+  const RETRY_DELAYS_MS = [3000, 5000, 8000]
+
   const load = useCallback(async () => {
     setStatus('loading')
-    try {
-      const [{ products }, liveSettings] = await Promise.all([api.get('/products'), api.get('/settings')])
-      setCatalog(products)
-      setSettings(liveSettings)
-      setStatus('ready')
-    } catch {
-      setStatus('error')
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const [{ products }, liveSettings] = await Promise.all([api.get('/products'), api.get('/settings')])
+        setCatalog(products)
+        setSettings(liveSettings)
+        setStatus('ready')
+        return
+      } catch {
+        if (attempt >= RETRY_DELAYS_MS.length) {
+          setStatus('error')
+          return
+        }
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]))
+      }
     }
   }, [])
 
