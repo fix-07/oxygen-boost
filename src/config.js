@@ -10,11 +10,11 @@ export const SITE = {
   url: 'https://oxygenboost.ly',
 
   // ⚠️ استبدل الرقم برقم واتساب الحقيقي (صيغة دولية بدون + وبدون أصفار بادئة)
-  whatsapp: '21692252223',
-  whatsappDisplay: '+216 92 252 223',
+  whatsapp: '218925371266',
+  whatsappDisplay: '+218 92 537 1266',
   instagram: 'oxy.genboost',
   instagramUrl: 'https://www.instagram.com/oxy.genboost?igsh=NDg5M25jYTlxd3dq&igsi=NDg5M25jYTlxd3dq',
-  email: 'azizalisugh@gmail.com',
+  email: 'oxygenboost8@gmail.com',
 
   currency: 'د.ل',
   deliveryFee: 10,
