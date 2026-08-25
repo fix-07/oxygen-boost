@@ -1,36 +1,47 @@
 /**
  * سجل الصور الحقيقية.
+  * كل سطر بالأسفل = مكان واحد في الموقع (منتج، صفحة، أو مشهد).
  *
- * كيف تستبدل الرسوم بصور فوتوغرافية:
- *   1. ضع الصورة داخل  public/photos/  بالاسم المذكور أدناه.
- *   2. أزل علامة التعليق (//) عن السطر المقابل.
- * أي اسم غير مذكور هنا يُعرض كرسم SVG تلقائياً — بدون أي طلب شبكة زائد.
+ * كيف تضيف أو تغيّر صورة:
+ *   1. ضع ملف الصورة داخل  public/photos/  باستخدام "اسم الملف" المكتوب بالضبط
+ *      (نفس الحروف الكبيرة/الصغيرة ونفس الامتداد .jpg أو .jpeg).
+ *   2. غيّر active من false إلى true في نفس السطر.
+ * أي عنصر active: false يُعرض كرسم SVG بديل تلقائياً بدل الصورة الحقيقية.
  */
-export const PHOTOS = new Set([
-  // ---- الرئيسية والمنتجات ----
-  'hero.jpg',              // علبة الطقم الكاملة (الجهاز + ٣ أوراق لصقات + الأداة + ٤ قطع مغناطيسية) — صورة الواجهة الرئيسية
-  // 'about.jpeg',           صورة صفحة من نحن
-  'device.jpg',          // صورة الجهاز في بطاقات المنتج
-  'pads-30.jpg',           // ٣ أوراق لصقات (٣٠ لصقة) فقط — تطابق تام لكمية عبوة ٣٠
-  'pads-60.jpg',           // ٦ أوراق لصقات (٦٠ لصقة) فقط — تطابق تام لكمية عبوة ٦٠
-  'pads-90.jpg',           // ٩ أوراق لصقات (٩٠ لصقة) فقط — تطابق تام لكمية عبوة ٩٠
-  // 'bundle-60.jpeg',
 
-  // ---- صور مرفوعة لكن غير مستخدمة حالياً (public/photos) — الكمية المعروضة فيها لا تطابق أي منتج بدقة ----
-  'lol6.jpeg',  // ٤ أوراق لصقات (٤٠) + الأداة + ٤ قطع مغناطيسية
-  'lol7.jpeg',  // ٧ أوراق لصقات (٧٠) + الأداة + ٤ قطع مغناطيسية
-  'lol8.jpeg',  // نحو ١٣ ورقة لصقات (~١٣٠) + الأداة + ٤ قطع مغناطيسية
+const ENTRIES = [
+  // ---- المنتجات (تظهر في: بطاقة المنتج، السلة، صفحة المنتج) ----
+  { product: 'جهاز Oxygen Boost', file: 'device.jpg', active: true },
+  { product: 'عبوة ٣٠ لصقة بديلة', file: 'pads-30.jpg', active: true },
+  { product: 'عبوة ٦٠ لصقة بديلة', file: 'pads-60.jpg', active: true },
+  { product: 'عبوة ٩٠ لصقة بديلة', file: 'pads-90.jpg', active: true },
+  { product: 'باقة: الجهاز فقط', file: 'bundle-device.jpg', active: false },
+  { product: 'باقة: الجهاز + ٣٠ لصقة', file: 'lol6.jpeg', active: false },
+  { product: 'باقة: الجهاز + ٦٠ لصقة', file: 'lol7.jpeg', active: false },
+  { product: 'باقة: الجهاز + ٩٠ لصقة', file: 'lol8.jpeg', active: false },
 
-  // ---- معرض صفحة المنتج (زوايا متعددة) ----
-  // 'device-1.jpeg', 'device-2.jpeg', 'device-3.jpeg',
-  // 'pads-30-1.jpeg', 'pads-30-2.jpeg',
+  // ---- صفحات ثابتة ----
+  { product: 'الصفحة الرئيسية (صورة الواجهة)', file: 'hero.jpg', active: true },
+  { product: 'صفحة "من نحن"', file: 'about.jpg', active: false },
 
-  // ---- مشاهد "لمن يناسب" ----
-  // 'use-sport.jpg',
-  // 'use-sleep.jpg',
-  // 'use-run.jpg',
-  // 'use-travel.jpg',
-])
+  // ---- معرض صفحة المنتج (صور إضافية بزوايا مختلفة، اختيارية) ----
+  { product: 'معرض الجهاز — صورة ١', file: 'device-1.jpg', active: false },
+  { product: 'معرض الجهاز — صورة ٢', file: 'device-2.jpg', active: false },
+  { product: 'معرض الجهاز — صورة ٣', file: 'device-3.jpg', active: false },
+  { product: 'معرض عبوة ٣٠ لصقة — صورة ١', file: 'pads-30-1.jpg', active: false },
+  { product: 'معرض عبوة ٣٠ لصقة — صورة ٢', file: 'pads-30-2.jpg', active: false },
 
-/** يُرجع مسار الصورة إن كانت مسجّلة، وإلا undefined */
+  // ---- مشاهد "لمن يناسب" (الصفحة الرئيسية) ----
+  { product: 'مشهد: الرياضة', file: 'use-sport.jpg', active: false },
+  { product: 'مشهد: النوم', file: 'use-sleep.jpg', active: false },
+  { product: 'مشهد: الجري', file: 'use-run.jpg', active: false },
+  { product: 'مشهد: السفر', file: 'use-travel.jpg', active: false },
+]
+
+// lol6/7/8.jpeg مُسندة للباقات بالأعلى لكنها لا تزال active: false — الكمية المعروضة فيها
+// لا تطابق كمية أي باقة بدقة (٤٠ أو ٧٠ أو ١٣٠ لصقة). فعّلها فقط إن قبلت هذا الفرق.
+
+export const PHOTOS = new Set(ENTRIES.filter((e) => e.active).map((e) => e.file))
+
+/** يُرجع مسار الصورة إن كانت مسجّلة وفعّالة، وإلا undefined */
 export const photoSrc = (file) => (file && PHOTOS.has(file) ? `/photos/${file}` : undefined)
