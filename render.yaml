@@ -38,9 +38,11 @@ services:
       # ↓↓↓ أدخل هذه يدوياً في لوحة Render (Environment) ↓↓↓
       - key: MONGODB_URI
         sync: false
-      - key: GMAIL_USER
+      # مفتاح Resend لإرسال بريد الطلبات (HTTPS) — من https://resend.com/api-keys.
+      # منافذ SMTP التقليدية محجوبة على خطة Render المجانية
+      - key: RESEND_API_KEY
         sync: false
-      - key: GMAIL_APP_PASSWORD
+      - key: ORDER_EMAIL_FROM
         sync: false
       - key: ORDER_EMAIL_TO
         sync: false

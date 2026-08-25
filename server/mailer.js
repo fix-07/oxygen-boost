@@ -1,27 +1,16 @@
 /**
- * إشعار الطلبات عبر Gmail SMTP.
- * يتطلّب تفعيل التحقّق بخطوتين ثم إنشاء «كلمة مرور تطبيقات» — لا تستخدم كلمة مرور الحساب.
+ * إشعار الطلبات عبر Resend (HTTPS API).
+ * لماذا ليس Gmail SMTP: استضافات مثل Render المجانية تحجب منافذ SMTP الصادرة (25، 465، 587)
+ * لمنع إساءة الاستخدام، فيفشل الاتصال دوماً بغضّ النظر عن صحة البيانات. HTTPS (443) لا يُحجب أبداً.
+ * أنشئ مفتاحاً مجانياً من https://resend.com/api-keys وضعه في RESEND_API_KEY.
  */
-import nodemailer from 'nodemailer'
 import { config } from './config.js'
 
-const enabled = Boolean(config.mail.user && config.mail.pass && config.mail.to)
+const enabled = Boolean(config.mail.apiKey && config.mail.to)
 
 if (!enabled) {
-  console.warn('[mail] إعدادات Gmail ناقصة — سيتم تسجيل الطلبات دون إرسال بريد.')
+  console.warn('[mail] إعدادات Resend ناقصة — سيتم تسجيل الطلبات دون إرسال بريد.')
 }
-
-const transporter = enabled
-  ? nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: { user: config.mail.user, pass: config.mail.pass },
-      // بعض شبكات الاستضافة (مثل Render) لا تدعم IPv6 خروجاً، فيفشل الاتصال بعنوان
-      // smtp.gmail.com الذي يُحلَّل أحياناً إلى IPv6 بخطأ ENETUNREACH — نجبره على IPv4
-      family: 4,
-    })
-  : null
 
 const money = (major) => `${Number(major).toFixed(2)} ${config.currency}`
 
@@ -32,13 +21,39 @@ const esc = (v) =>
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
   )
 
+/** إرسال فعلي عبر واجهة Resend البرمجية — لا يرمي أبداً، يُسجّل الفشل فقط */
+async function sendMail({ to, subject, text, html, replyTo }, errorLabel) {
+  if (!enabled) return
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.mail.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `Oxygen Boost <${config.mail.from}>`,
+        to,
+        reply_to: replyTo,
+        subject,
+        text,
+        html,
+      }),
+    })
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      throw new Error(`Resend ${res.status}: ${body.slice(0, 300)}`)
+    }
+  } catch (err) {
+    console.error(`[mail] ${errorLabel}:`, err.message)
+  }
+}
+
 /**
  * يُرسل بريد الطلب الجديد. لا يرمي أبداً: فشل البريد يجب ألا يُفشل طلباً مسجّلاً بالفعل.
  * order بالشكل العلني (وحدات كبرى) الذي يعيده orderService.
  */
 export async function sendOrderEmail(order) {
-  if (!transporter) return
-
   const itemsHtml = order.items
     .map(
       (i) =>
@@ -60,9 +75,8 @@ export async function sendOrderEmail(order) {
     ['ملاحظات', order.customer.notes || '—'],
   ].filter(Boolean)
 
-  try {
-    await transporter.sendMail({
-      from: `"Oxygen Boost" <${config.mail.from}>`,
+  await sendMail(
+    {
       to: config.mail.to,
       replyTo: config.mail.to,
       subject: `طلب جديد ${order.number} — ${money(order.total)}`,
@@ -83,20 +97,16 @@ export async function sendOrderEmail(order) {
       .join('')}
   </table>
 </div>`,
-    })
-  } catch (err) {
-    console.error(`[mail] تعذّر إرسال بريد الطلب ${order.number}:`, err.message)
-  }
+    },
+    `تعذّر إرسال بريد الطلب ${order.number}`
+  )
 }
 
 /** إشعار أمني — يُرسَل لصاحب الحساب نفسه بعد كل تغيير لكلمة مروره */
 export async function sendPasswordChangedEmail(toEmail) {
-  if (!transporter) return
-
   const when = new Date().toLocaleString('ar-LY', { dateStyle: 'medium', timeStyle: 'short' })
-  try {
-    await transporter.sendMail({
-      from: `"Oxygen Boost" <${config.mail.from}>`,
+  await sendMail(
+    {
       to: toEmail,
       subject: 'تم تغيير كلمة مرور حساب المشرف',
       text: `تم تغيير كلمة مرور حساب المشرف (${toEmail}) بتاريخ ${when}.\n\nإن لم تكن أنت من قام بهذا التغيير، تواصل فوراً مع مسؤول النظام.`,
@@ -105,21 +115,17 @@ export async function sendPasswordChangedEmail(toEmail) {
   <p>تم تغيير كلمة مرور حساب المشرف <b>${esc(toEmail)}</b> بتاريخ ${esc(when)}.</p>
   <p style="color:#888">إن لم تكن أنت من قام بهذا التغيير، غيّر كلمة المرور فوراً وتحقّق من أمان حسابك.</p>
 </div>`,
-    })
-  } catch (err) {
-    console.error('[mail] تعذّر إرسال إشعار تغيير كلمة المرور:', err.message)
-  }
+    },
+    'تعذّر إرسال إشعار تغيير كلمة المرور'
+  )
 }
 
 /** إشعار أمني مزدوج — يُرسَل للبريد القديم (تنبيه) وللبريد الجديد (تأكيد) بعد تغيير بريد الحساب */
 export async function sendEmailChangedNotice(oldEmail, newEmail) {
-  if (!transporter) return
-
   const when = new Date().toLocaleString('ar-LY', { dateStyle: 'medium', timeStyle: 'short' })
-  try {
-    await Promise.all([
-      transporter.sendMail({
-        from: `"Oxygen Boost" <${config.mail.from}>`,
+  await Promise.all([
+    sendMail(
+      {
         to: oldEmail,
         subject: 'تم تغيير البريد الإلكتروني لحساب المشرف',
         text: `تم تغيير بريد حساب المشرف من ${oldEmail} إلى ${newEmail} بتاريخ ${when}.\n\nإن لم تكن أنت من قام بهذا التغيير، تواصل فوراً مع مسؤول النظام.`,
@@ -128,9 +134,11 @@ export async function sendEmailChangedNotice(oldEmail, newEmail) {
   <p>تم تغيير بريد حساب المشرف من <b>${esc(oldEmail)}</b> إلى <b>${esc(newEmail)}</b> بتاريخ ${esc(when)}.</p>
   <p style="color:#888">إن لم تكن أنت من قام بهذا التغيير، تواصل فوراً مع مسؤول النظام.</p>
 </div>`,
-      }),
-      transporter.sendMail({
-        from: `"Oxygen Boost" <${config.mail.from}>`,
+      },
+      'تعذّر إرسال إشعار تغيير البريد (القديم)'
+    ),
+    sendMail(
+      {
         to: newEmail,
         subject: 'تأكيد: هذا بريد حساب المشرف الآن',
         text: `تم تعيين هذا البريد (${newEmail}) بريداً لتسجيل دخول المشرف بدلاً من ${oldEmail} بتاريخ ${when}.`,
@@ -138,9 +146,8 @@ export async function sendEmailChangedNotice(oldEmail, newEmail) {
   <h2 style="margin:0 0 12px">تأكيد تغيير البريد الإلكتروني</h2>
   <p>تم تعيين <b>${esc(newEmail)}</b> بريداً لتسجيل دخول حساب المشرف بدلاً من ${esc(oldEmail)} بتاريخ ${esc(when)}.</p>
 </div>`,
-      }),
-    ])
-  } catch (err) {
-    console.error('[mail] تعذّر إرسال إشعار تغيير البريد:', err.message)
-  }
+      },
+      'تعذّر إرسال إشعار تغيير البريد (الجديد)'
+    ),
+  ])
 }

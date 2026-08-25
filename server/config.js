@@ -55,12 +55,12 @@ export const config = {
   freeDeliveryOverMinor: int(process.env.FREE_DELIVERY_OVER, 250) * 100,
   currency: process.env.CURRENCY || 'LYD',
 
-  /** Gmail SMTP — كلمة مرور التطبيقات (App Password) وليست كلمة مرور الحساب */
+  /** البريد عبر Resend (HTTPS) — استضافات مثل Render المجانية تحجب منافذ SMTP الصادرة،
+      لذا لم نعد نستخدم Gmail SMTP مباشرة. أنشئ مفتاحاً من https://resend.com/api-keys */
   mail: {
-    user: process.env.GMAIL_USER || '',
-    pass: process.env.GMAIL_APP_PASSWORD || '',
+    apiKey: process.env.RESEND_API_KEY || '',
     to: process.env.ORDER_EMAIL_TO || process.env.GMAIL_USER || '',
-    from: process.env.ORDER_EMAIL_FROM || process.env.GMAIL_USER || '',
+    from: process.env.ORDER_EMAIL_FROM || 'onboarding@resend.dev',
   },
 
   /** حدود الطلب */
