@@ -10,7 +10,6 @@ const Shop = lazy(() => import('./pages/Shop'))
 const Product = lazy(() => import('./pages/Product'))
 const HowToUse = lazy(() => import('./pages/HowToUse'))
 const About = lazy(() => import('./pages/About'))
-const Faq = lazy(() => import('./pages/Faq'))
 const Contact = lazy(() => import('./pages/Contact'))
 const Track = lazy(() => import('./pages/Track'))
 const Cart = lazy(() => import('./pages/Cart'))
@@ -67,7 +66,6 @@ export default function App() {
             />
             <Route path="how-to-use" element={<HowToUse />} />
             <Route path="about" element={<About />} />
-            <Route path="faq" element={<Faq />} />
             <Route path="contact" element={<Contact />} />
             <Route path="track" element={<Track />} />
             <Route

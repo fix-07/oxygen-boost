@@ -278,11 +278,6 @@ export default function Home() {
             text="لم تجد سؤالك؟ راسلنا على واتساب وسنجيبك مباشرة."
           />
           <FaqSection limit={6} />
-          <Reveal style={{ textAlign: 'center', marginTop: 30 }}>
-            <Link to="/faq" className="btn btn--ghost btn--sm">
-              عرض كل الأسئلة
-            </Link>
-          </Reveal>
         </div>
       </section>
 

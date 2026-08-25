@@ -10,7 +10,6 @@ const NAV = [
   { to: '/', label: 'الرئيسية', end: true },
   { to: '/shop', label: 'المتجر' },
   { to: '/how-to-use', label: 'طريقة الاستخدام' },
-  { to: '/faq', label: 'الأسئلة الشائعة' },
   { to: '/#reviews', label: 'آراء العملاء', plain: true },
   { to: '/contact', label: 'تواصل معنا' },
 ]
@@ -297,7 +296,6 @@ function Footer() {
               <li><Link to="/shop">جميع المنتجات</Link></li>
               <li><Link to="/how-to-use">طريقة الاستخدام</Link></li>
               <li><Link to="/about">من نحن</Link></li>
-              <li><Link to="/faq">الأسئلة الشائعة</Link></li>
               <li><Link to="/track">تتبّع طلبك</Link></li>
               <li><Link to="/contact">تواصل معنا</Link></li>
             </ul>

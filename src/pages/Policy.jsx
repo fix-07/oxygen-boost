@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { Reveal } from '../components/ui'
 import { useSeo } from '../hooks/useSeo'
@@ -174,9 +173,6 @@ export default function Policy({ kind }) {
                 <Icon name="whatsapp" size={17} />
                 راسلنا على واتساب
               </a>
-              <Link to="/faq" className="btn btn--ghost btn--sm">
-                الأسئلة الشائعة
-              </Link>
             </div>
           </Reveal>
         </div>
