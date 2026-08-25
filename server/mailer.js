@@ -17,6 +17,9 @@ const transporter = enabled
       port: 465,
       secure: true,
       auth: { user: config.mail.user, pass: config.mail.pass },
+      // بعض شبكات الاستضافة (مثل Render) لا تدعم IPv6 خروجاً، فيفشل الاتصال بعنوان
+      // smtp.gmail.com الذي يُحلَّل أحياناً إلى IPv6 بخطأ ENETUNREACH — نجبره على IPv4
+      family: 4,
     })
   : null
 
