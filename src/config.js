@@ -18,7 +18,7 @@ export const SITE = {
 
   currency: 'د.ل',
   deliveryFee: 10,
-  freeDeliveryOver: 250,
+  freeDeliveryOver: 150,
   deliveryDays: 'من ٢ إلى ٥ أيام عمل حسب المدينة',
 
   // ضع المعرّفات هنا لتفعيل التتبّع (اتركها فارغة أثناء التطوير)
