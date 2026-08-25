@@ -22,7 +22,7 @@ const ENTRIES = [
 
   // ---- صفحات ثابتة ----
   { product: 'الصفحة الرئيسية (صورة الواجهة)', file: 'hero.jpg', active: true },
-  { product: 'صفحة "من نحن"', file: 'interface.jpeg', active: false },
+  { product: 'صفحة "من نحن"', file: 'about.jpg', active: true },
 
   // ---- معرض صفحة المنتج (صور إضافية بزوايا مختلفة، اختيارية) ----
   { product: 'معرض الجهاز — صورة ١', file: 'device-1.jpg', active: false },

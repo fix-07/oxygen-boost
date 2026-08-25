@@ -49,7 +49,7 @@ export function HowToVideo() {
           <video src={src} controls autoPlay playsInline />
         ) : (
           <iframe
-            src={`${src}${src.includes('?') ? '&' : '?'}autoplay=1`}
+            src={`${src}${src.includes('?') ? '&' : '?'}autoplay=1&mute=1`}
             title="طريقة استخدام Oxygen Boost"
             allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
