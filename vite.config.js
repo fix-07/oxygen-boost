@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // يمنع فشل الاتصال بـ localhost عندما يحلّ Node عنوان IPv6 فقط
+    host: '127.0.0.1',
+  },
   build: {
     // كل صورة صغيرة تتحوّل إلى inline لتقليل عدد الطلبات وزيادة السرعة
     assetsInlineLimit: 8192,
