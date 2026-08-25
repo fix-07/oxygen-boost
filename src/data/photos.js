@@ -16,9 +16,9 @@ const ENTRIES = [
   { product: 'عبوة ٦٠ لصقة بديلة', file: 'pads-60.jpg', active: true },
   { product: 'عبوة ٩٠ لصقة بديلة', file: 'pads-90.jpg', active: true },
   { product: 'باقة: الجهاز فقط', file: 'bundle-device.jpg', active: false },
-  { product: 'باقة: الجهاز + ٣٠ لصقة', file: 'lol6.jpeg', active: false },
-  { product: 'باقة: الجهاز + ٦٠ لصقة', file: 'lol7.jpeg', active: false },
-  { product: 'باقة: الجهاز + ٩٠ لصقة', file: 'lol8.jpeg', active: false },
+  { product: 'باقة: الجهاز + ٣٠ لصقة', file: 'lol-6.jpeg', active: false },
+  { product: 'باقة: الجهاز + ٦٠ لصقة', file: 'lol-7.jpeg', active: false },
+  { product: 'باقة: الجهاز + ٩٠ لصقة', file: 'lol-8.jpeg', active: false },
 
   // ---- صفحات ثابتة ----
   { product: 'الصفحة الرئيسية (صورة الواجهة)', file: 'hero.jpg', active: true },
@@ -38,7 +38,7 @@ const ENTRIES = [
   { product: 'مشهد: السفر', file: 'use-travel.jpg', active: false },
 ]
 
-// lol6/7/8.jpeg مُسندة للباقات بالأعلى لكنها لا تزال active: false — الكمية المعروضة فيها
+// lol-6/7/8.jpeg مُسندة للباقات بالأعلى لكنها لا تزال active: false — الكمية المعروضة فيها
 // لا تطابق كمية أي باقة بدقة (٤٠ أو ٧٠ أو ١٣٠ لصقة). فعّلها فقط إن قبلت هذا الفرق.
 
 export const PHOTOS = new Set(ENTRIES.filter((e) => e.active).map((e) => e.file))

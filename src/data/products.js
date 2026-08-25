@@ -131,40 +131,7 @@ export const PRODUCTS = [
 
 /** الباقات — تُعامل كمنتجات قابلة للإضافة إلى السلة */
 export const BUNDLES = [
-  {
-    id: 'bundle-device',
-    slug: 'bundle-device',
-    type: 'bundle',
-    name: 'الجهاز فقط',
-    short: 'ابدأ بالأساسيات وجرّب التجربة بنفسك.',
-    price: 149,
-    compareAt: null,
-    stock: 60,
-    badges: [],
-    art: ['device', 'kit'],
-    contents: ['جهاز Oxygen Boost', 'لصقات البداية داخل العلبة'],
-    includes: ['جهاز Oxygen Boost المغناطيسي', 'لصقات البداية', 'دليل استخدام'],
-    features: ['أخف بداية ممكنة', 'يمكنك طلب اللصقات لاحقاً في أي وقت'],
-    usage: [],
-    warnings: [],
-  },
-  {
-    id: 'bundle-30',
-    slug: 'bundle-30',
-    type: 'bundle',
-    name: 'الجهاز + ٣٠ لصقة',
-    short: 'يكفيك شهراً كاملاً من الاستخدام اليومي.',
-    price: 179,
-    compareAt: 194,
-    stock: 50,
-    badges: [],
-    art: ['device', 'pads'],
-    contents: ['جهاز Oxygen Boost', 'عبوة ٣٠ لصقة بديلة'],
-    includes: ['جهاز Oxygen Boost المغناطيسي', 'عبوة ٣٠ لصقة بديلة', 'دليل استخدام'],
-    features: ['توفير مباشر مقارنة بالشراء المنفصل', 'كمية كافية لتجربة روتين كامل'],
-    usage: [],
-    warnings: [],
-  },
+
   {
     id: 'bundle-60',
     slug: 'bundle-60',
