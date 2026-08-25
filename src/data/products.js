@@ -133,6 +133,23 @@ export const PRODUCTS = [
 export const BUNDLES = [
 
   {
+    id: 'bundle-30',
+    slug: 'bundle-30',
+    type: 'bundle',
+    name: 'الجهاز + ٣٠ لصقة',
+    short: 'يكفيك شهراً كاملاً من الاستخدام اليومي.',
+    price: 179,
+    compareAt: 194,
+    stock: 50,
+    badges: [],
+    art: ['device', 'pads'],
+    contents: ['جهاز Oxygen Boost', 'عبوة ٣٠ لصقة بديلة'],
+    includes: ['جهاز Oxygen Boost المغناطيسي', 'عبوة ٣٠ لصقة بديلة', 'دليل استخدام'],
+    features: ['توفير مباشر مقارنة بالشراء المنفصل', 'كمية كافية لتجربة روتين كامل'],
+    usage: [],
+    warnings: [],
+  },
+  {
     id: 'bundle-60',
     slug: 'bundle-60',
     type: 'bundle',
