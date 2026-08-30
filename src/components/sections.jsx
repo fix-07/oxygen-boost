@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import Icon from './Icon'
 import Art, { NoseFlowArt } from './Art'
-import { Accordion, Notice, Reveal, SectionHead, Stars } from './ui'
-import { FAQS, REVIEWS, STEPS, TRUST_POINTS, USE_CASES } from '../data/content'
+import { Notice, Reveal, SectionHead, Stars } from './ui'
+import { REVIEWS, STEPS, TRUST_POINTS, USE_CASES } from '../data/content'
 import { SITE } from '../config'
 
 /* ---------------------------- خطوات الاستخدام ---------------------------- */
@@ -175,12 +175,6 @@ export function ReviewsSection() {
       )}
     </>
   )
-}
-
-/* ---------------------------- الأسئلة الشائعة ---------------------------- */
-
-export function FaqSection({ limit }) {
-  return <Accordion items={limit ? FAQS.slice(0, limit) : FAQS} />
 }
 
 /* ---------------------------- شريط الثقة ---------------------------- */

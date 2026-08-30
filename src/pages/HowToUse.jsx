@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { Reveal, SectionHead } from '../components/ui'
-import { BeforeAfter, FaqSection, HowToVideo, StepsSection, TrustBar } from '../components/sections'
+import { BeforeAfter, HowToVideo, StepsSection, TrustBar } from '../components/sections'
 import { useSeo } from '../hooks/useSeo'
 
 const TIPS = [
@@ -62,13 +62,6 @@ export default function HowToUse() {
       <section className="section">
         <div className="container">
           <BeforeAfter />
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container">
-          <SectionHead eyebrow="أسئلة الاستخدام" title="أسئلة شائعة حول التركيب" />
-          <FaqSection limit={5} />
         </div>
       </section>
 

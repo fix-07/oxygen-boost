@@ -47,40 +47,6 @@ export function Qty({ value, onChange, min = 1, max = 99, large = false }) {
   )
 }
 
-export function Accordion({ items, singleOpen = true }) {
-  const [open, setOpen] = useState(() => new Set())
-
-  const toggle = (i) =>
-    setOpen((prev) => {
-      const next = singleOpen ? new Set() : new Set(prev)
-      if (!prev.has(i)) next.add(i)
-      return next
-    })
-
-  return (
-    <div className="faq">
-      {items.map((item, i) => {
-        const isOpen = open.has(i)
-        return (
-          <Reveal key={item.q} className={`acc ${isOpen ? 'is-open' : ''}`} delay={i * 40}>
-            <button type="button" className="acc__q" onClick={() => toggle(i)} aria-expanded={isOpen}>
-              <span>{item.q}</span>
-              <span className="acc__icon">
-                <Icon name="chevron" size={15} />
-              </span>
-            </button>
-            <div className="acc__a">
-              <div>
-                <p>{item.a}</p>
-              </div>
-            </div>
-          </Reveal>
-        )
-      })}
-    </div>
-  )
-}
-
 export function Notice({ children }) {
   return (
     <div className="notice">
