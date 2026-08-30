@@ -12,6 +12,7 @@ import { Product } from '../models/Product.js'
 import { Order } from '../models/Order.js'
 import { getSettings } from './settingsService.js'
 import { findActiveCoupon, computeDiscount } from './couponService.js'
+import { findZoneFeeMinor } from './deliveryService.js'
 import { sendOrderEmail } from '../mailer.js'
 import { HttpError } from '../validate.js'
 import { toMajor } from '../utils/money.js'
@@ -75,9 +76,12 @@ export async function createOrder({ items, couponCode, customer }) {
       const coupon = await findActiveCoupon(couponCode)
       const { discountMinor, freeShipping } = computeDiscount(coupon, subtotalMinor)
 
+      const zoneFeeMinor = await findZoneFeeMinor(customer.city)
+      const baseDeliveryMinor = zoneFeeMinor ?? settings.deliveryFeeMinor
+
       const afterDiscount = Math.max(0, subtotalMinor - discountMinor)
       const qualifiesFree = settings.freeDeliveryOverMinor > 0 && afterDiscount >= settings.freeDeliveryOverMinor
-      const deliveryMinor = freeShipping || qualifiesFree ? 0 : settings.deliveryFeeMinor
+      const deliveryMinor = freeShipping || qualifiesFree ? 0 : baseDeliveryMinor
       const totalMinor = afterDiscount + deliveryMinor
 
       let created = null

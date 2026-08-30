@@ -66,6 +66,7 @@ export function StoreProvider({ children }) {
 
   const [catalog, setCatalog] = useState([])
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+  const [deliveryZones, setDeliveryZones] = useState([])
   const [status, setStatus] = useState('loading') // 'loading' | 'ready' | 'error'
 
   // الخادم المجاني (Render) قد "ينام" بعد فترة خمول ويحتاج نحو ٢٠-٣٠ ثانية للاستيقاظ،
@@ -76,9 +77,14 @@ export function StoreProvider({ children }) {
     setStatus('loading')
     for (let attempt = 0; ; attempt++) {
       try {
-        const [{ products }, liveSettings] = await Promise.all([api.get('/products'), api.get('/settings')])
+        const [{ products }, liveSettings, { zones }] = await Promise.all([
+          api.get('/products'),
+          api.get('/settings'),
+          api.get('/delivery-zones'),
+        ])
         setCatalog(products)
         setSettings(liveSettings)
+        setDeliveryZones(zones)
         setStatus('ready')
         return
       } catch {
@@ -148,6 +154,16 @@ export function StoreProvider({ children }) {
   )
 
   const cartCount = useMemo(() => cartLines.reduce((n, l) => n + l.qty, 0), [cartLines])
+
+  /* ---------------------------- مناطق التوصيل ---------------------------- */
+
+  const zoneByLocation = useMemo(() => new Map(deliveryZones.map((z) => [z.location, z])), [deliveryZones])
+
+  /** سعر توصيل موقع بعينه — يرجع لسعر التوصيل العام في الإعدادات إن لم يكن الموقع ضمن القائمة (تقدير للعرض فقط، الخادم يعيد الحساب دائماً عند إنشاء الطلب) */
+  const deliveryFeeFor = useCallback(
+    (location) => zoneByLocation.get(location)?.price ?? settings.deliveryFee,
+    [zoneByLocation, settings.deliveryFee]
+  )
 
   /* ---------------------------- الحسابات (تقدير للعرض فقط) ---------------------------- */
   /* الحساب المعتمد يبقى دائماً داخل الخادم عند POST /orders — هذا فقط لعرض فوري للزائر */
@@ -221,6 +237,8 @@ export function StoreProvider({ children }) {
     clearCoupon,
     createOrder,
     settings,
+    deliveryZones,
+    deliveryFeeFor,
     toast,
     toasts,
     status,

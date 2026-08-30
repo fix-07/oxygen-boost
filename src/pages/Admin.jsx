@@ -721,6 +721,161 @@ function CouponsTab({ coupons, onSave, onDelete }) {
   )
 }
 
+function DeliveryZonesTab({ zones, onSave, onDelete }) {
+  const { toast } = useStore()
+  const [drafts, setDrafts] = useState({})
+  const [draft, setDraft] = useState({ location: '', region: '', price: 20 })
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    setDrafts(Object.fromEntries(zones.map((z) => [z.location, { region: z.region, price: z.price }])))
+  }, [zones])
+
+  const setLocalDraft = (location, patch) =>
+    setDrafts((prev) => ({ ...prev, [location]: { ...prev[location], ...patch } }))
+
+  const commit = async (zone) => {
+    const d = drafts[zone.location] || {}
+    const price = Number(d.price)
+    const region = (d.region || '').trim()
+    if (!Number.isFinite(price) || price < 0) {
+      setLocalDraft(zone.location, { price: zone.price })
+      return
+    }
+    if (region === zone.region && price === zone.price) return
+    try {
+      await onSave({ location: zone.location, region, price })
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : 'تعذّر حفظ التعديل.')
+      setLocalDraft(zone.location, { region: zone.region, price: zone.price })
+    }
+  }
+
+  const remove = async (location) => {
+    try {
+      await onDelete(location)
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : 'تعذّر حذف الموقع.')
+    }
+  }
+
+  const add = async (e) => {
+    e.preventDefault()
+    const location = draft.location.trim()
+    if (!location) return
+    setBusy(true)
+    try {
+      await onSave({ location, region: draft.region.trim(), price: Number(draft.price) })
+      toast(`تمت إضافة «${location}»`)
+      setDraft({ location: '', region: '', price: 20 })
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : 'تعذّر حفظ الموقع.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <p className="small muted" style={{ marginBottom: 16 }}>
+        عدّل المنطقة أو السعر ثم انقر خارج الحقل لحفظ التغيير — يظهر فوراً في قائمة التوصيل بصفحة الطلب. لتصحيح اسم
+        موقع، احذفه وأضِفه من جديد بالاسم الصحيح.
+      </p>
+
+      <div className="table-wrap" style={{ marginBottom: 24 }}>
+        <table>
+          <thead>
+            <tr>
+              <th>الموقع</th>
+              <th>المنطقة</th>
+              <th>سعر التوصيل</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {zones.length === 0 && (
+              <tr>
+                <td colSpan={4} className="muted">
+                  لا توجد مواقع توصيل.
+                </td>
+              </tr>
+            )}
+            {zones.map((z) => {
+              const d = drafts[z.location] || { region: z.region, price: z.price }
+              return (
+                <tr key={z.location}>
+                  <td style={{ fontWeight: 600, color: '#fff' }}>{z.location}</td>
+                  <td>
+                    <input
+                      className="cell-input"
+                      value={d.region}
+                      onChange={(e) => setLocalDraft(z.location, { region: e.target.value })}
+                      onBlur={() => commit(z)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="cell-input"
+                      type="number"
+                      min="0"
+                      value={d.price}
+                      onChange={(e) => setLocalDraft(z.location, { price: e.target.value })}
+                      onBlur={() => commit(z)}
+                    />
+                  </td>
+                  <td>
+                    <button type="button" className="icon-btn" onClick={() => remove(z.location)} title="حذف">
+                      <Icon name="trash" size={15} />
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <form className="panel" onSubmit={add} style={{ maxWidth: 640 }}>
+        <h3 style={{ marginBottom: 16 }}>إضافة موقع توصيل</h3>
+        <div className="form-row">
+          <label className="field">
+            <span>اسم الموقع</span>
+            <input
+              className="input"
+              value={draft.location}
+              onChange={(e) => setDraft({ ...draft, location: e.target.value })}
+              placeholder="مثال: تاجوراء"
+            />
+          </label>
+          <label className="field">
+            <span>المنطقة (لتجميع القائمة)</span>
+            <input
+              className="input"
+              value={draft.region}
+              onChange={(e) => setDraft({ ...draft, region: e.target.value })}
+              placeholder="مثال: شرق طرابلس"
+            />
+          </label>
+        </div>
+        <label className="field">
+          <span>سعر التوصيل</span>
+          <input
+            className="input"
+            type="number"
+            min="0"
+            value={draft.price}
+            onChange={(e) => setDraft({ ...draft, price: e.target.value })}
+          />
+        </label>
+        <button type="submit" className="btn" disabled={busy}>
+          <Icon name="plus" size={17} />
+          {busy ? 'جارٍ الحفظ…' : 'حفظ الموقع'}
+        </button>
+      </form>
+    </>
+  )
+}
+
 function SettingsTab({ settings, onSaveSettings, onOpenChangePassword, onOpenChangeEmail }) {
   const { toast } = useStore()
   const [draft, setDraft] = useState(settings)
@@ -818,6 +973,7 @@ const TABS = [
   { id: 'products', label: 'المنتجات والأسعار', icon: 'box' },
   { id: 'orders', label: 'الطلبات', icon: 'package' },
   { id: 'coupons', label: 'أكواد الخصم', icon: 'ticket' },
+  { id: 'delivery', label: 'التوصيل', icon: 'truck' },
   { id: 'settings', label: 'الإعدادات', icon: 'settings' },
 ]
 
@@ -828,6 +984,7 @@ export default function Admin() {
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [coupons, setCoupons] = useState([])
+  const [deliveryZones, setDeliveryZones] = useState([])
   const [settings, setSettings] = useState(null)
   const [loadState, setLoadState] = useState('idle') // 'idle' | 'loading' | 'ready' | 'error'
   const [loadError, setLoadError] = useState('')
@@ -850,15 +1007,17 @@ export default function Admin() {
     setLoadState('loading')
     setLoadError('')
     try {
-      const [{ products }, { orders }, { coupons }, liveSettings] = await Promise.all([
+      const [{ products }, { orders }, { coupons }, { zones }, liveSettings] = await Promise.all([
         auth.get('/admin/products'),
         auth.get('/admin/orders?limit=200'),
         auth.get('/admin/coupons'),
+        auth.get('/admin/delivery-zones'),
         api.get('/settings'),
       ])
       setProducts(products)
       setOrders(orders)
       setCoupons(coupons)
+      setDeliveryZones(zones)
       setSettings(liveSettings)
       setLoadState('ready')
     } catch (err) {
@@ -913,6 +1072,29 @@ export default function Admin() {
     async (code) => {
       await auth.delete(`/admin/coupons/${encodeURIComponent(code)}`)
       setCoupons((prev) => prev.filter((c) => c.code !== code))
+    },
+    [auth]
+  )
+
+  const saveDeliveryZone = useCallback(
+    async (zone) => {
+      const { zone: saved } = await auth.post('/admin/delivery-zones', zone)
+      setDeliveryZones((prev) => {
+        const i = prev.findIndex((z) => z.location === saved.location)
+        if (i === -1) return [...prev, saved]
+        const next = [...prev]
+        next[i] = saved
+        return next
+      })
+      return saved
+    },
+    [auth]
+  )
+
+  const deleteDeliveryZone = useCallback(
+    async (location) => {
+      await auth.delete(`/admin/delivery-zones/${encodeURIComponent(location)}`)
+      setDeliveryZones((prev) => prev.filter((z) => z.location !== location))
     },
     [auth]
   )
@@ -989,6 +1171,9 @@ export default function Admin() {
       {tab === 'products' && <ProductsTab products={products} onUpdate={updateProduct} />}
       {tab === 'orders' && <OrdersTab orders={orders} onUpdate={updateOrder} />}
       {tab === 'coupons' && <CouponsTab coupons={coupons} onSave={saveCoupon} onDelete={deleteCoupon} />}
+      {tab === 'delivery' && (
+        <DeliveryZonesTab zones={deliveryZones} onSave={saveDeliveryZone} onDelete={deleteDeliveryZone} />
+      )}
       {tab === 'settings' && (
         <SettingsTab
           settings={settings}

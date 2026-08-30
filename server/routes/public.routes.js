@@ -5,6 +5,7 @@ import { bad, int, optionalStr, phone, str, strictObject } from '../validate.js'
 import { listPublicProducts } from '../services/productService.js'
 import { getPublicSettings } from '../services/settingsService.js'
 import { previewCoupon } from '../services/couponService.js'
+import { listDeliveryZones } from '../services/deliveryService.js'
 import { createOrder, findOrderByNumber } from '../services/orderService.js'
 
 export const publicRouter = Router()
@@ -32,6 +33,15 @@ publicRouter.get('/products', async (req, res, next) => {
 publicRouter.get('/settings', async (req, res, next) => {
   try {
     res.json(await getPublicSettings())
+  } catch (err) {
+    next(err)
+  }
+})
+
+/** مناطق التوصيل وأسعارها — مصدر القائمة التي تُعرض في نموذج الطلب */
+publicRouter.get('/delivery-zones', async (req, res, next) => {
+  try {
+    res.json({ zones: await listDeliveryZones() })
   } catch (err) {
     next(err)
   }

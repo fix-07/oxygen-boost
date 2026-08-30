@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Icon from './Icon'
 import { Qty } from './ui'
 import { useStore } from '../store/StoreContext'
-import { LIBYAN_CITIES, SITE, money } from '../config'
+import { OTHER_CITY, SITE, money } from '../config'
 import { ApiError } from '../services/api'
 import { track } from '../analytics'
 
@@ -51,8 +51,19 @@ const validate = (v) => {
  */
 export default function OrderForm({ mode = 'quick' }) {
   const navigate = useNavigate()
-  const { items, cartLines, totals, settings, createOrder, clearCart, appliedCoupon, applyCoupon, clearCoupon } =
-    useStore()
+  const {
+    items,
+    cartLines,
+    totals,
+    settings,
+    deliveryZones,
+    deliveryFeeFor,
+    createOrder,
+    clearCart,
+    appliedCoupon,
+    applyCoupon,
+    clearCoupon,
+  } = useStore()
 
   const [picked, setPicked] = useState('bundle-60')
   const [qty, setQty] = useState(1)
@@ -73,14 +84,30 @@ export default function OrderForm({ mode = 'quick' }) {
     return pickedItem ? [{ id: pickedItem.id, qty, product: pickedItem, lineTotal: pickedItem.price * qty }] : []
   }, [mode, cartLines, pickedItem, qty])
 
-  /* المبالغ — في الوضع السريع نحسبها محلياً */
+  /* تجميع مناطق التوصيل حسب المنطقة لعرضها في القائمة المنسدلة بترتيب المصدر */
+  const zoneGroups = useMemo(() => {
+    const groups = new Map()
+    for (const z of deliveryZones) {
+      if (!groups.has(z.region)) groups.set(z.region, [])
+      groups.get(z.region).push(z)
+    }
+    return [...groups.entries()]
+  }, [deliveryZones])
+
+  /* المبالغ — المجموع الفرعي والخصم من الخادم في وضع السلة، والتوصيل يُحسب دائماً
+     محلياً حسب المدينة المختارة للعرض الفوري (تقدير فقط، الخادم يعيد حسابه عند التأكيد) */
   const amounts = useMemo(() => {
-    if (mode === 'checkout') return totals
-    const subtotal = lines.reduce((n, l) => n + l.lineTotal, 0)
-    const free = settings.freeDeliveryOver > 0 && subtotal >= settings.freeDeliveryOver
-    const delivery = subtotal === 0 || free ? 0 : settings.deliveryFee
-    return { subtotal, discount: 0, delivery, freeShipping: free, total: subtotal + delivery }
-  }, [mode, totals, lines, settings])
+    const subtotal = mode === 'checkout' ? totals.subtotal : lines.reduce((n, l) => n + l.lineTotal, 0)
+    const discount = mode === 'checkout' ? totals.discount : 0
+    const couponFreeShipping = mode === 'checkout' && appliedCoupon?.type === 'shipping'
+
+    const afterDiscount = Math.max(0, subtotal - discount)
+    const qualifiesFree = settings.freeDeliveryOver > 0 && afterDiscount >= settings.freeDeliveryOver
+    const freeShipping = couponFreeShipping || qualifiesFree
+    const delivery = subtotal === 0 || freeShipping ? 0 : deliveryFeeFor(values.city)
+
+    return { subtotal, discount, delivery, freeShipping, total: afterDiscount + delivery }
+  }, [mode, totals, lines, settings, deliveryFeeFor, values.city, appliedCoupon])
 
   const set = (key) => (e) => {
     const v = e.target.value
@@ -215,12 +242,17 @@ export default function OrderForm({ mode = 'quick' }) {
             value={values.city}
             onChange={set('city')}
           >
-            <option value="">اختر مدينتك</option>
-            {LIBYAN_CITIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+            <option value="">اختر مدينتك أو منطقتك</option>
+            {zoneGroups.map(([region, zones]) => (
+              <optgroup key={region || 'عام'} label={region || 'عام'}>
+                {zones.map((z) => (
+                  <option key={z.location} value={z.location}>
+                    {z.location} — {money(z.price)}
+                  </option>
+                ))}
+              </optgroup>
             ))}
+            <option value={OTHER_CITY}>{OTHER_CITY} — {money(settings.deliveryFee)}</option>
           </select>
           {errors.city && <em className="field-error">{errors.city}</em>}
         </label>

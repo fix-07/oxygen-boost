@@ -8,6 +8,7 @@ import { sendPasswordChangedEmail, sendEmailChangedNotice } from '../mailer.js'
 import { listAdminProducts, updateProduct } from '../services/productService.js'
 import { listOrdersAdmin, updateOrderAdmin } from '../services/orderService.js'
 import { listCoupons, upsertCoupon, deleteCoupon } from '../services/couponService.js'
+import { listDeliveryZones, upsertDeliveryZone, deleteDeliveryZone } from '../services/deliveryService.js'
 import { updateSettings } from '../services/settingsService.js'
 import { toMinor } from '../utils/money.js'
 import { ORDER_STATUSES } from '../models/Order.js'
@@ -212,6 +213,48 @@ adminRouter.post('/admin/coupons', requireAdmin, async (req, res, next) => {
 adminRouter.delete('/admin/coupons/:code', requireAdmin, async (req, res, next) => {
   try {
     await deleteCoupon(req.params.code)
+    res.status(204).end()
+  } catch (err) {
+    next(err)
+  }
+})
+
+/* -------------------------------------------------------------------------- */
+/*  مناطق التوصيل                                                               */
+/* -------------------------------------------------------------------------- */
+
+adminRouter.get('/admin/delivery-zones', requireAdmin, async (req, res, next) => {
+  try {
+    res.json({ zones: await listDeliveryZones() })
+  } catch (err) {
+    next(err)
+  }
+})
+
+adminRouter.post('/admin/delivery-zones', requireAdmin, async (req, res, next) => {
+  try {
+    const body = strictObject(req.body, ['location', 'region', 'price', 'order'])
+    const location = str(body.location, { field: 'location', min: 2, max: 80 })
+    const price = Number(body.price)
+    if (!Number.isFinite(price) || price < 0) bad('سعر التوصيل غير صحيح.')
+    const order = body.order === undefined ? 0 : int(body.order, { field: 'order', min: 0, max: 1000 })
+
+    res.json({
+      zone: await upsertDeliveryZone({
+        location,
+        region: body.region ? str(body.region, { field: 'region', min: 0, max: 60 }) : '',
+        price,
+        order,
+      }),
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+adminRouter.delete('/admin/delivery-zones/:location', requireAdmin, async (req, res, next) => {
+  try {
+    await deleteDeliveryZone(req.params.location)
     res.status(204).end()
   } catch (err) {
     next(err)
